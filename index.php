@@ -1,6 +1,7 @@
 <?php
-require_once '../config/config.php';
-require_once '../includes/functions.php';
+// SaveMedia - Main Application Entry Point
+require_once 'config/config.php';
+require_once 'includes/functions.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -19,39 +20,56 @@ require_once '../includes/functions.php';
             <a class="navbar-brand" href="/">
                 <i class="fas fa-download me-2"></i><?php echo APP_NAME; ?>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#home">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#features">Features</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#supported">Platforms</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#api">API</a>
-                    </li>
-                </ul>
+            <div class="navbar-nav ms-auto">
+                <span class="nav-link text-white">
+                    <i class="fas fa-server me-1"></i>
+                    Status: <span class="badge bg-success">Online</span>
+                </span>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section id="home" class="hero-section">
+    <section class="hero-section">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8 text-center">
                     <h1 class="display-4 fw-bold mb-4">
-                        Download Media from Any Platform
+                        <i class="fas fa-download me-3"></i>
+                        SaveMedia Downloader
                     </h1>
                     <p class="lead mb-5">
                         Fast, free, and secure media downloader supporting YouTube, Instagram, Facebook, Twitter, TikTok, and more!
                     </p>
+                    
+                    <!-- System Status -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="status-card">
+                                <i class="fas fa-server text-success"></i>
+                                <h6>Server</h6>
+                                <span class="badge bg-success">Online</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="status-card">
+                                <i class="fas fa-download text-info"></i>
+                                <h6>yt-dlp</h6>
+                                <span class="badge bg-<?php echo (shell_exec('which yt-dlp 2>/dev/null') ? 'success' : 'warning'); ?>">
+                                    <?php echo (shell_exec('which yt-dlp 2>/dev/null') ? 'Ready' : 'Installing...'); ?>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="status-card">
+                                <i class="fas fa-video text-warning"></i>
+                                <h6>FFmpeg</h6>
+                                <span class="badge bg-<?php echo (shell_exec('which ffmpeg 2>/dev/null') ? 'success' : 'warning'); ?>">
+                                    <?php echo (shell_exec('which ffmpeg 2>/dev/null') ? 'Ready' : 'Installing...'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- Download Form -->
                     <div class="download-form">
@@ -84,7 +102,7 @@ require_once '../includes/functions.php';
                     
                     <!-- Loading -->
                     <div id="loadingDiv" class="d-none">
-                        <div class="spinner-border text-primary me-2" role="status"></div>
+                        <div class="spinner-border text-light me-2" role="status"></div>
                         <span>Processing your request...</span>
                     </div>
                     
@@ -108,177 +126,37 @@ require_once '../includes/functions.php';
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="py-5 bg-light">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12 text-center mb-5">
-                    <h2 class="display-5 fw-bold">Why Choose <?php echo APP_NAME; ?>?</h2>
-                    <p class="lead">Fast, reliable, and feature-rich media downloading</p>
-                </div>
-            </div>
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="feature-card text-center">
-                        <div class="feature-icon">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <h4>Lightning Fast</h4>
-                        <p>Download media in seconds with our optimized servers and CDN network.</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="feature-card text-center">
-                        <div class="feature-icon">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <h4>100% Secure</h4>
-                        <p>Your privacy is protected. We don't store your data or downloaded files.</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="feature-card text-center">
-                        <div class="feature-icon">
-                            <i class="fas fa-mobile-alt"></i>
-                        </div>
-                        <h4>Mobile Friendly</h4>
-                        <p>Works perfectly on all devices - desktop, tablet, and mobile.</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="feature-card text-center">
-                        <div class="feature-icon">
-                            <i class="fas fa-hd-video"></i>
-                        </div>
-                        <h4>HD Quality</h4>
-                        <p>Download in multiple formats and qualities up to 4K resolution.</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="feature-card text-center">
-                        <div class="feature-icon">
-                            <i class="fas fa-globe"></i>
-                        </div>
-                        <h4>Multi-Platform</h4>
-                        <p>Support for 10+ popular social media and video platforms.</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="feature-card text-center">
-                        <div class="feature-icon">
-                            <i class="fas fa-code"></i>
-                        </div>
-                        <h4>Developer API</h4>
-                        <p>RESTful API for developers to integrate into their applications.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Supported Platforms -->
-    <section id="supported" class="py-5">
+    <section class="py-5 bg-light">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center mb-5">
                     <h2 class="display-5 fw-bold">Supported Platforms</h2>
-                    <p class="lead">Download from your favorite social media and video platforms</p>
                 </div>
             </div>
             <div class="row g-4">
                 <div class="col-md-3 col-sm-6">
                     <div class="platform-card">
-                        <i class="fab fa-youtube"></i>
+                        <i class="fab fa-youtube text-danger"></i>
                         <h5>YouTube</h5>
-                        <p>Videos, playlists, and audio</p>
                     </div>
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <div class="platform-card">
-                        <i class="fab fa-instagram"></i>
+                        <i class="fab fa-instagram text-primary"></i>
                         <h5>Instagram</h5>
-                        <p>Posts, stories, and reels</p>
                     </div>
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <div class="platform-card">
-                        <i class="fab fa-facebook"></i>
+                        <i class="fab fa-facebook text-primary"></i>
                         <h5>Facebook</h5>
-                        <p>Videos and live streams</p>
                     </div>
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <div class="platform-card">
-                        <i class="fab fa-twitter"></i>
+                        <i class="fab fa-twitter text-info"></i>
                         <h5>Twitter/X</h5>
-                        <p>Videos and GIFs</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <div class="platform-card">
-                        <i class="fab fa-tiktok"></i>
-                        <h5>TikTok</h5>
-                        <p>Short videos without watermark</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <div class="platform-card">
-                        <i class="fab fa-vimeo"></i>
-                        <h5>Vimeo</h5>
-                        <p>High-quality videos</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <div class="platform-card">
-                        <i class="fas fa-video"></i>
-                        <h5>Dailymotion</h5>
-                        <p>Videos and channels</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <div class="platform-card">
-                        <i class="fas fa-plus"></i>
-                        <h5>More Coming</h5>
-                        <p>Regular updates with new platforms</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- API Documentation -->
-    <section id="api" class="py-5 bg-light">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12 text-center mb-5">
-                    <h2 class="display-5 fw-bold">Developer API</h2>
-                    <p class="lead">Integrate <?php echo APP_NAME; ?> into your applications</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-8 mx-auto">
-                    <div class="api-docs">
-                        <h4>API Endpoints</h4>
-                        <div class="endpoint">
-                            <h5><span class="badge bg-success">POST</span> /api/info</h5>
-                            <p>Get media information without downloading</p>
-                            <pre><code>{
-  "url": "https://youtube.com/watch?v=..."
-}</code></pre>
-                        </div>
-                        <div class="endpoint">
-                            <h5><span class="badge bg-primary">POST</span> /api/download</h5>
-                            <p>Get download links for media</p>
-                            <pre><code>{
-  "url": "https://youtube.com/watch?v=...",
-  "quality": "high",
-  "format": "mp4"
-}</code></pre>
-                        </div>
-                        <div class="endpoint">
-                            <h5><span class="badge bg-info">GET</span> /api/platforms</h5>
-                            <p>Get list of supported platforms</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -287,17 +165,16 @@ require_once '../includes/functions.php';
 
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5><?php echo APP_NAME; ?></h5>
-                    <p>Free multi-platform media downloader</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p>&copy; 2024 <?php echo APP_NAME; ?>. All rights reserved.</p>
-                    <p>Powered by AWS & PHP</p>
-                </div>
-            </div>
+        <div class="container text-center">
+            <p>&copy; 2024 <?php echo APP_NAME; ?>. Powered by AWS Elastic Beanstalk</p>
+            <p>
+                <a href="/api/health" class="text-light me-3">
+                    <i class="fas fa-heartbeat me-1"></i>Health Check
+                </a>
+                <a href="/api/platforms" class="text-light">
+                    <i class="fas fa-list me-1"></i>API Info
+                </a>
+            </p>
         </div>
     </footer>
 
