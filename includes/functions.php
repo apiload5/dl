@@ -1,12 +1,8 @@
 <?php
 class SaveMedia {
     
-    private static function logError($message, $context = []) {
-        $log_message = date('Y-m-d H:i:s') . ' - ' . $message;
-        if (!empty($context)) {
-            $log_message .= ' - Context: ' . json_encode($context);
-        }
-        error_log($log_message);
+    private static function logError($message) {
+        error_log(date('Y-m-d H:i:s') . ' - SaveMedia Error: ' . $message);
     }
     
     public static function detectPlatform($url) {
@@ -32,18 +28,16 @@ class SaveMedia {
     }
     
     public static function validateUrl($url) {
-        // Basic URL validation
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
             return false;
         }
         
-        // Check if domain is allowed
-        $parsed_url = parse_url($url);
-        if (!$parsed_url || !isset($parsed_url['host'])) {
+        $parsed = parse_url($url);
+        if (!$parsed || !isset($parsed['host'])) {
             return false;
         }
         
-        $domain = strtolower($parsed_url['host']);
+        $domain = strtolower($parsed['host']);
         foreach (ALLOWED_DOMAINS as $allowed) {
             if (strpos($domain, $allowed) !== false) {
                 return true;
@@ -76,29 +70,53 @@ class SaveMedia {
         return true;
     }
     
+    private static function findYtDlp() {
+        // Possible yt-dlp locations
+        $paths = [
+            '/usr/bin/yt-dlp',
+            '/usr/local/bin/yt-dlp',
+            '/home/webapp/.local/bin/yt-dlp',
+            '/opt/python/run/venv/bin/yt-dlp'
+        ];
+        
+        foreach ($paths as $path) {
+            if (file_exists($path) && is_executable($path)) {
+                return $path;
+            }
+        }
+        
+        // Try which command
+        $which = trim(shell_exec('which yt-dlp 2>/dev/null'));
+        if ($which && file_exists($which)) {
+            return $which;
+        }
+        
+        // Try python module
+        $python_check = shell_exec('python3 -m yt_dlp --version 2>/dev/null');
+        if ($python_check) {
+            return 'python3 -m yt_dlp';
+        }
+        
+        return null;
+    }
+    
     public static function getMediaInfo($url) {
         try {
-            // Check if yt-dlp is available
-            $ytdlp_check = shell_exec('which yt-dlp 2>/dev/null');
-            if (empty($ytdlp_check)) {
-                throw new Exception("yt-dlp is not installed or not accessible");
+            $ytdlp = self::findYtDlp();
+            if (!$ytdlp) {
+                throw new Exception("yt-dlp not available. Please install it manually.");
             }
             
-            // Build command with timeout
-            $command = sprintf(
-                'timeout 60 yt-dlp --dump-json --no-warnings --no-playlist %s 2>/dev/null',
-                escapeshellarg($url)
-            );
-            
+            $command = $ytdlp . ' --dump-json --no-warnings --no-playlist ' . escapeshellarg($url) . ' 2>/dev/null';
             $output = shell_exec($command);
             
             if (!$output) {
-                throw new Exception("Failed to extract media information - no output from yt-dlp");
+                throw new Exception("Failed to extract media information");
             }
             
             $info = json_decode($output, true);
             if (!$info) {
-                throw new Exception("Invalid JSON response from yt-dlp");
+                throw new Exception("Invalid media data received");
             }
             
             return [
@@ -116,20 +134,16 @@ class SaveMedia {
             ];
             
         } catch (Exception $e) {
-            self::logError("Media info extraction failed", [
-                'url' => $url,
-                'error' => $e->getMessage()
-            ]);
+            self::logError("Media info extraction failed: " . $e->getMessage());
             throw $e;
         }
     }
     
     public static function downloadMedia($url, $quality = 'best', $format = 'mp4') {
         try {
-            // Check if yt-dlp is available
-            $ytdlp_check = shell_exec('which yt-dlp 2>/dev/null');
-            if (empty($ytdlp_check)) {
-                throw new Exception("yt-dlp is not installed or not accessible");
+            $ytdlp = self::findYtDlp();
+            if (!$ytdlp) {
+                throw new Exception("yt-dlp not available. Please install it manually.");
             }
             
             // Build format selector
@@ -151,13 +165,8 @@ class SaveMedia {
                 $format_selector = 'bestaudio/best';
             }
             
-            // Get download URL with timeout
-            $command = sprintf(
-                'timeout 60 yt-dlp --get-url --format %s --no-warnings --no-playlist %s 2>/dev/null',
-                escapeshellarg($format_selector),
-                escapeshellarg($url)
-            );
-            
+            // Get download URL
+            $command = $ytdlp . ' --get-url --format ' . escapeshellarg($format_selector) . ' --no-warnings --no-playlist ' . escapeshellarg($url) . ' 2>/dev/null';
             $download_url = trim(shell_exec($command));
             
             if (!$download_url || !filter_var($download_url, FILTER_VALIDATE_URL)) {
@@ -165,11 +174,7 @@ class SaveMedia {
             }
             
             // Get additional info
-            $info_command = sprintf(
-                'timeout 60 yt-dlp --dump-json --no-warnings --no-playlist %s 2>/dev/null',
-                escapeshellarg($url)
-            );
-            
+            $info_command = $ytdlp . ' --dump-json --no-warnings --no-playlist ' . escapeshellarg($url) . ' 2>/dev/null';
             $info_output = shell_exec($info_command);
             $info = $info_output ? json_decode($info_output, true) : [];
             
@@ -189,12 +194,7 @@ class SaveMedia {
             ];
             
         } catch (Exception $e) {
-            self::logError("Media download failed", [
-                'url' => $url,
-                'quality' => $quality,
-                'format' => $format,
-                'error' => $e->getMessage()
-            ]);
+            self::logError("Media download failed: " . $e->getMessage());
             throw $e;
         }
     }
