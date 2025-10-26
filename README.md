@@ -32,3 +32,10 @@ eb create savemedia-env --single-instance
 # Deploy
 eb deploy
 
+Local Development 
+
+# Install dependencies
+composer install
+
+# Start local server
+php -S localhost:8000 -t public/
