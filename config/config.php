@@ -1,40 +1,42 @@
 <?php
-// SaveMedia Configuration - Self Installing
+// SaveMedia Configuration - Compatible with .ebextensions
 define('APP_NAME', 'SaveMedia');
 define('APP_VERSION', '2.0');
-define('APP_ENV', 'production');
+define('APP_ENV', $_SERVER['APP_ENV'] ?? 'production');
+define('APP_DEBUG', filter_var($_SERVER['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN));
 
-// Set PHP Configuration Programmatically
-ini_set('memory_limit', '512M');
-ini_set('max_execution_time', '300');
-ini_set('max_input_time', '300');
-ini_set('post_max_size', '100M');
-ini_set('upload_max_filesize', '100M');
-ini_set('max_file_uploads', '20');
-ini_set('allow_url_fopen', '1');
-ini_set('log_errors', '1');
-ini_set('error_log', '/tmp/php_errors.log');
-ini_set('display_errors', '0');
-ini_set('error_reporting', '0');
-
-// Application Settings
+// Paths
 define('API_BASE_URL', '/api');
 define('UPLOAD_DIR', '/tmp/downloads');
+define('LOG_DIR', '/var/log/savemedia');
+
+// Limits (from environment or defaults)
 define('MAX_FILE_SIZE', 100 * 1024 * 1024); // 100MB
 define('RATE_LIMIT', 10); // requests per minute
+define('MAX_EXECUTION_TIME', 300); // 5 minutes
 
-// Supported Platforms
+// Supported platforms
 define('ALLOWED_DOMAINS', [
     'youtube.com', 'youtu.be', 'instagram.com', 'facebook.com',
     'twitter.com', 'x.com', 'tiktok.com', 'vimeo.com', 'dailymotion.com'
 ]);
 
-// Auto-create directories
-if (!is_dir(UPLOAD_DIR)) {
-    @mkdir(UPLOAD_DIR, 0777, true);
+// Error reporting based on environment
+if (APP_ENV === 'production') {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+    ini_set('log_errors', 1);
+    ini_set('error_log', '/var/log/php_errors.log');
+} else {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
 }
 
-// Session Configuration
+// Additional PHP settings (complementing .ebextensions)
+ini_set('max_execution_time', MAX_EXECUTION_TIME);
+ini_set('default_socket_timeout', 60);
+
+// Session configuration
 if (session_status() === PHP_SESSION_NONE) {
     session_start([
         'cookie_httponly' => true,
@@ -44,35 +46,25 @@ if (session_status() === PHP_SESSION_NONE) {
     ]);
 }
 
-// CORS Headers
+// CORS headers (complementing nginx config)
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
-// Handle OPTIONS requests
+// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// Timezone
+// Set timezone
 date_default_timezone_set('Asia/Kolkata');
 
-// Auto-install yt-dlp function
-function installYtDlp() {
-    $install_commands = [
-        'python3 -m pip install --user yt-dlp 2>/dev/null',
-        'pip3 install --user yt-dlp 2>/dev/null',
-        'pip install --user yt-dlp 2>/dev/null'
-    ];
-    
-    foreach ($install_commands as $cmd) {
-        @shell_exec($cmd);
+// Ensure directories exist
+$directories = [UPLOAD_DIR, LOG_DIR];
+foreach ($directories as $dir) {
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0777, true);
     }
-}
-
-// Check and install yt-dlp if needed
-if (!shell_exec('which yt-dlp 2>/dev/null') && !file_exists('/home/webapp/.local/bin/yt-dlp')) {
-    installYtDlp();
 }
 ?>
