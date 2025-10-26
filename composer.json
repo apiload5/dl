@@ -1,0 +1,5 @@
+{
+    "name": "media-downloader/app",
+    "description": "A simple PHP video downloader application for Beanstalk.",
+    "require": {}
+}
