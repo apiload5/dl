@@ -2,6 +2,10 @@
 // SaveMedia - Main Application Entry Point
 require_once 'config/config.php';
 require_once 'includes/functions.php';
+
+// Safe FFmpeg & yt-dlp checks (without shell_exec)
+$hasYtDlp = file_exists('/usr/bin/yt-dlp') || file_exists('/usr/local/bin/yt-dlp');
+$hasFFmpeg = file_exists('/usr/bin/ffmpeg') || file_exists('/usr/local/bin/ffmpeg');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -55,8 +59,8 @@ require_once 'includes/functions.php';
                             <div class="status-card">
                                 <i class="fas fa-download text-info"></i>
                                 <h6>yt-dlp</h6>
-                                <span class="badge bg-<?php echo (shell_exec('which yt-dlp 2>/dev/null') ? 'success' : 'warning'); ?>">
-                                    <?php echo (shell_exec('which yt-dlp 2>/dev/null') ? 'Ready' : 'Installing...'); ?>
+                                <span class="badge bg-<?php echo ($hasYtDlp ? 'success' : 'warning'); ?>">
+                                    <?php echo ($hasYtDlp ? 'Ready' : 'Installing...'); ?>
                                 </span>
                             </div>
                         </div>
@@ -64,8 +68,8 @@ require_once 'includes/functions.php';
                             <div class="status-card">
                                 <i class="fas fa-video text-warning"></i>
                                 <h6>FFmpeg</h6>
-                                <span class="badge bg-<?php echo (shell_exec('which ffmpeg 2>/dev/null') ? 'success' : 'warning'); ?>">
-                                    <?php echo (shell_exec('which ffmpeg 2>/dev/null') ? 'Ready' : 'Installing...'); ?>
+                                <span class="badge bg-<?php echo ($hasFFmpeg ? 'success' : 'warning'); ?>">
+                                    <?php echo ($hasFFmpeg ? 'Ready' : 'Installing...'); ?>
                                 </span>
                             </div>
                         </div>
@@ -166,7 +170,7 @@ require_once 'includes/functions.php';
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
         <div class="container text-center">
-            <p>&copy; 2024 <?php echo APP_NAME; ?>. Powered by AWS Elastic Beanstalk</p>
+            <p>&copy; <?php echo date('Y'); ?> <?php echo APP_NAME; ?>. Powered by AWS Elastic Beanstalk</p>
             <p>
                 <a href="/api/health" class="text-light me-3">
                     <i class="fas fa-heartbeat me-1"></i>Health Check
